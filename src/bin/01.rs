@@ -5,15 +5,10 @@ pub fn part_one(input: &str) -> Option<u32> {
         input
             .lines()
             .flat_map(|line| {
-                let mut digits = line.chars().filter(|c| c.is_ascii_digit());
-                let first = digits.next();
-                let last = digits.last();
-                first
-                    .map(|c| match last {
-                        Some(last) => format!("{}{}", c, last),
-                        None => format!("{}{}", c, c),
-                    })
-                    .and_then(|s| s.parse::<u32>().ok())
+                let mut chars = line.chars();
+                let first = chars.find(char::is_ascii_digit)?;
+                let last = chars.rfind(char::is_ascii_digit).unwrap_or(first);
+                format!("{}{}", first, last).parse::<u32>().ok()
             })
             .sum(),
     )
