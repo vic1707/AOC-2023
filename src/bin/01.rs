@@ -1,7 +1,22 @@
 advent_of_code::solution!(1);
 
 pub fn part_one(input: &str) -> Option<u32> {
-    None
+    Some(
+        input
+            .lines()
+            .flat_map(|line| {
+                let mut digits = line.chars().filter(|c| c.is_ascii_digit());
+                let first = digits.next();
+                let last = digits.last();
+                first
+                    .map(|c| match last {
+                        Some(last) => format!("{}{}", c, last),
+                        None => format!("{}{}", c, c),
+                    })
+                    .and_then(|s| s.parse::<u32>().ok())
+            })
+            .sum(),
+    )
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
