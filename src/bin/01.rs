@@ -14,79 +14,37 @@ pub fn part_one(input: &str) -> Option<u32> {
     )
 }
 
-const NAMED_NUMBERS: [&str; 9] = [
-    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+const NAMED_NUMBERS: [&[u8]; 9] = [
+    b"one", b"two", b"three", b"four", b"five", b"six", b"seven", b"eight", b"nine",
 ];
 
 pub fn part_two(input: &str) -> Option<u32> {
     Some(
         input
             .lines()
-            .flat_map(|line| {
-                let mut bytes = line.bytes().enumerate();
+            .map(|l| l.as_bytes())
+            .map(|line| {
+                let mut bytes = line.iter().enumerate();
+                let first = bytes.find_map(|byte| find_digit(byte, line)).unwrap();
+                let last = bytes
+                    .rev()
+                    .find_map(|byte| find_digit(byte, line))
+                    .unwrap_or(first);
 
-                let mut first = None;
-                while let Some((idx, ch)) = bytes.next() {
-                    if ch.is_ascii_digit() {
-                        first.replace(ch - b'0');
-                        break;
-                    }
-
-                    // if ch is the first char of a named number
-                    if let Some((val, name)) = NAMED_NUMBERS
-                        .iter()
-                        .enumerate()
-                        .find(|(_, name)| name.starts_with(ch as char) && {
-                            let len = name.len();
-                            if idx + len >= line.len() {
-                                return false;
-                            }
-                            let slice = &line[idx..idx + len];
-                            let n = *name.to_owned();
-                            slice == n
-                        })
-                    {
-                        first.replace(val as u8 + 1);
-                        break;
-                    }
-                }
-
-                let mut last = None;
-                while let Some((idx, ch)) = bytes.next_back() {
-                    if ch.is_ascii_digit() {
-                        last.replace(ch - b'0');
-                        break;
-                    }
-
-                    // if ch is the first char of a named number
-                    if let Some((val, _)) = NAMED_NUMBERS.iter().enumerate().find(|(_, name)| {
-                        name.ends_with(ch as char) && {
-                            let len = name.len();
-                            if idx + 1 < len {
-                                return false;
-                            }
-                            let slice = &line[idx + 1 - len..idx + 1];
-                            let n = *name.to_owned();
-                            slice == n
-                        }
-                    }) {
-                        last.replace(val as u8 + 1);
-                        break;
-                    }
-                }
-
-                if let Some(first) = first {
-                    if let Some(last) = last {
-                        format!("{}{}", first, last).parse::<u32>().ok()
-                    } else {
-                        format!("{}{}", first, first).parse::<u32>().ok()
-                    }
-                } else {
-                    format!("{}{}", last.unwrap(), last.unwrap()).parse::<u32>().ok()
-                }
+                first * 10 + last
             })
             .sum(),
     )
+}
+
+#[inline(always)]
+fn find_digit((idx, b): (usize, &u8), line: &[u8]) -> Option<u32> {
+    b.is_ascii_digit().then(|| u32::from(b - b'0')).or_else(|| {
+        NAMED_NUMBERS
+            .iter()
+            .position(|&name| line[idx..].starts_with(name))
+            .map(|i| i as u32 + 1)
+    })
 }
 
 #[cfg(test)]
