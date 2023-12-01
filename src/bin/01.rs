@@ -1,5 +1,3 @@
-use std::{convert::Infallible, str::FromStr};
-
 advent_of_code::solution!(1);
 
 pub fn part_one(input: &str) -> Option<u32> {
@@ -16,61 +14,79 @@ pub fn part_one(input: &str) -> Option<u32> {
     )
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    const NUMBER_PATTERNS: &[&str] = &[
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", // 1-9
-        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", // 1-9
-    ];
+const NAMED_NUMBERS: [&str; 9] = [
+    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+];
 
+pub fn part_two(input: &str) -> Option<u32> {
     Some(
         input
             .lines()
             .flat_map(|line| {
-                let mut find_first = NUMBER_PATTERNS
-                    .iter()
-                    .map(|pattern| (pattern, line.find(pattern)))
-                    .filter(|(_, index)| index.is_some())
-                    .collect::<Vec<_>>();
-                find_first.sort_by(|(_, a), (_, b)| a.cmp(b));
-                let first = find_first.first().unwrap();
-                let mut find_last = NUMBER_PATTERNS
-                    .iter()
-                    .map(|pattern| (pattern, line.rfind(pattern)))
-                    .filter(|(_, index)| index.is_some())
-                    .collect::<Vec<_>>();
-                find_last.sort_by(|(_, a), (_, b)| a.cmp(b));
-                let last = find_last.last().unwrap();
+                let mut bytes = line.bytes().enumerate();
 
-                format!(
-                    "{}{}",
-                    first.0.parse::<Num>().unwrap().0,
-                    last.0.parse::<Num>().unwrap().0
-                )
-                .parse::<u32>()
+                let mut first = None;
+                while let Some((idx, ch)) = bytes.next() {
+                    if ch.is_ascii_digit() {
+                        first.replace(ch - b'0');
+                        break;
+                    }
+
+                    // if ch is the first char of a named number
+                    if let Some((val, name)) = NAMED_NUMBERS
+                        .iter()
+                        .enumerate()
+                        .find(|(_, name)| name.starts_with(ch as char) && {
+                            let len = name.len();
+                            if idx + len >= line.len() {
+                                return false;
+                            }
+                            let slice = &line[idx..idx + len];
+                            let n = *name.to_owned();
+                            slice == n
+                        })
+                    {
+                        first.replace(val as u8 + 1);
+                        break;
+                    }
+                }
+
+                let mut last = None;
+                while let Some((idx, ch)) = bytes.next_back() {
+                    if ch.is_ascii_digit() {
+                        last.replace(ch - b'0');
+                        break;
+                    }
+
+                    // if ch is the first char of a named number
+                    if let Some((val, _)) = NAMED_NUMBERS.iter().enumerate().find(|(_, name)| {
+                        name.ends_with(ch as char) && {
+                            let len = name.len();
+                            if idx + 1 < len {
+                                return false;
+                            }
+                            let slice = &line[idx + 1 - len..idx + 1];
+                            let n = *name.to_owned();
+                            slice == n
+                        }
+                    }) {
+                        last.replace(val as u8 + 1);
+                        break;
+                    }
+                }
+
+                if let Some(first) = first {
+                    if let Some(last) = last {
+                        format!("{}{}", first, last).parse::<u32>().ok()
+                    } else {
+                        format!("{}{}", first, first).parse::<u32>().ok()
+                    }
+                } else {
+                    format!("{}{}", last.unwrap(), last.unwrap()).parse::<u32>().ok()
+                }
             })
             .sum(),
     )
-}
-
-struct Num(u32);
-
-impl FromStr for Num {
-    type Err = Infallible;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "1" | "one" => Num(1),
-            "2" | "two" => Num(2),
-            "3" | "three" => Num(3),
-            "4" | "four" => Num(4),
-            "5" | "five" => Num(5),
-            "6" | "six" => Num(6),
-            "7" | "seven" => Num(7),
-            "8" | "eight" => Num(8),
-            "9" | "nine" => Num(9),
-            _ => panic!("Invalid number"),
-        })
-    }
 }
 
 #[cfg(test)]
