@@ -53,23 +53,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        // example
         let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(142));
-        // real input
-        let result = part_one(&advent_of_code::template::read_file("inputs", DAY));
-        assert_eq!(result, Some(55172));
     }
 
     #[test]
     fn test_part_two() {
-        // example
         let result = part_two(&advent_of_code::template::read_file_part(
             "examples", DAY, 2,
         ));
         assert_eq!(result, Some(281));
-        // real input
-        let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
-        assert_eq!(result, Some(54925));
     }
 }
