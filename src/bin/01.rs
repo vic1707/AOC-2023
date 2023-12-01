@@ -4,11 +4,11 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(
         input
             .lines()
-            .flat_map(|line| {
-                let mut chars = line.bytes();
-                let first = chars.find(u8::is_ascii_digit)?;
-                let last = chars.rfind(u8::is_ascii_digit).unwrap_or(first);
-                Some(u32::from((first - b'0') * 10 + (last - b'0')))
+            .map(|line| {
+                let mut bytes = line.bytes();
+                let first = bytes.find(u8::is_ascii_digit).unwrap();
+                let last = bytes.rev().find(u8::is_ascii_digit).unwrap_or(first);
+                u32::from((first - b'0') * 10 + (last - b'0'))
             })
             .sum(),
     )
