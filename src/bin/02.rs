@@ -100,7 +100,15 @@ fn update_game(game: &mut (u8, u8, u8, u8), pull: (u8, u8, u8)) {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    Some(
+        input
+            .lines()
+            .map(|line| {
+                let (_, red, green, blue) = decompose_line(&mut line.bytes().peekable());
+                u32::from(red) * u32::from(green) * u32::from(blue)
+            })
+            .sum(),
+    )
 }
 
 #[cfg(test)]
