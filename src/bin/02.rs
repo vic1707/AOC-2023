@@ -35,6 +35,7 @@ fn decompose_line(iter: &mut Bytes<'_>) -> [u8; 3] {
     iter.by_ref().find(|b| b == &b':');
     let mut game: [u8; 3] = [0; 3];
     loop {
+        // next because current is a space
         iter.next();
         let num = iter
             .by_ref()
