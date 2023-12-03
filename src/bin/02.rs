@@ -22,10 +22,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     Some(
         input
             .lines()
-            .map(|line| {
-                let game = decompose_line(&mut line.bytes());
-                u32::from(game[0]) * u32::from(game[1]) * u32::from(game[2])
-            })
+            .map(|line| decompose_line(&mut line.bytes()).iter().product::<u8>() as u32)
             .sum(),
     )
 }
