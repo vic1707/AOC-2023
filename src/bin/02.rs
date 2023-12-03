@@ -22,15 +22,15 @@ pub fn part_two(input: &str) -> Option<u32> {
     Some(
         input
             .lines()
-            .map(|line| decompose_line(&mut line.bytes()).iter().product::<u8>() as u32)
+            .map(|line| decompose_line(&mut line.bytes()).iter().product::<u32>())
             .sum(),
     )
 }
 
 // [red, green, blue]
-fn decompose_line(iter: &mut Bytes<'_>) -> [u8; 3] {
+fn decompose_line(iter: &mut Bytes<'_>) -> [u32; 3] {
     iter.by_ref().find(|b| b == &b':');
-    let mut game: [u8; 3] = [0; 3];
+    let mut game: [u32; 3] = [0; 3];
     loop {
         // next because current is a space
         iter.next();
@@ -40,7 +40,7 @@ fn decompose_line(iter: &mut Bytes<'_>) -> [u8; 3] {
             // warning: this consumes the trailing byte (here a space so it's fine)
             .fold(0, |acc, b| acc * 10 + (b - b'0'));
         let letter_idx = usize::from(iter.next().unwrap() % 3);
-        game[letter_idx] = game[letter_idx].max(num);
+        game[letter_idx] = game[letter_idx].max(num as u32);
 
         // `;` appears to be worthless (same behavior as `,`)
         if !iter.by_ref().any(|b| b == b';' || b == b',') {
