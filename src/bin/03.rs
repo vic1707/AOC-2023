@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     iter::{Enumerate, Peekable},
     ops::RangeInclusive,
     str::Bytes,
@@ -48,7 +48,50 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let lines_el = input
+        .lines()
+        .enumerate()
+        .map(|(idx, line)| {
+            get_line_numbers_and_symbols(idx, &mut line.bytes().enumerate().peekable())
+        })
+        .collect::<Vec<_>>();
+
+    let mut lines_el = lines_el.windows(2);
+    let mut numbers: HashMap<Symbol, Vec<Number>> = HashMap::new();
+
+    while let Some([(symbols_l1, numbers_l1), (symbols_l2, numbers_l2)]) = lines_el.next() {
+        symbols_l1
+            .iter()
+            .filter(|(s, _)| matches!(s, b'*'))
+            .for_each(|symbol| {
+                numbers_l1.iter().chain(numbers_l2.iter()).for_each(|num| {
+                    let ok_range = extend_range(&num.1 .0);
+                    if ok_range.contains(&symbol.1 .0) {
+                        numbers.entry(*symbol).or_default().push(num.clone());
+                    }
+                });
+            });
+
+        symbols_l2
+            .iter()
+            .filter(|(s, _)| matches!(s, b'*'))
+            .for_each(|symbol| {
+                numbers_l1.iter().for_each(|num| {
+                    let ok_range = extend_range(&num.1 .0);
+                    if ok_range.contains(&symbol.1 .0) {
+                        numbers.entry(*symbol).or_default().push(num.clone());
+                    }
+                });
+            });
+    }
+
+    Some(
+        numbers
+            .iter()
+            .filter(|(_, val)| val.len() == 2)
+            .map(|(_, vec)| vec.iter().map(|(v, _)| v).product::<usize>())
+            .sum::<usize>() as u32,
+    )
 }
 
 // (symbol, (x, line))
