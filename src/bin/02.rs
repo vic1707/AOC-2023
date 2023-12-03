@@ -40,6 +40,7 @@ fn decompose_line(iter: &mut Bytes<'_>) -> [u8; 3] {
         let num = iter
             .by_ref()
             .take_while(|b| b.is_ascii_digit())
+            // warning: this consumes the trailing byte (here a space so it's fine)
             .fold(0, |acc, b| acc * 10 + (b - b'0'));
         let letter_idx = usize::from(iter.next().unwrap() % 3);
         game[letter_idx] = game[letter_idx].max(num);
