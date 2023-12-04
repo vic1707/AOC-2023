@@ -1,4 +1,4 @@
-use std::{iter::Peekable, ops::Index, str::Bytes};
+use std::{iter::Peekable, str::Bytes};
 
 advent_of_code::solution!(4);
 
@@ -7,32 +7,10 @@ pub fn part_one(input: &str) -> Option<u32> {
         input
             .lines()
             .map(|l| {
-                let mut winning = 0;
                 let mut iter = l.bytes().peekable();
 
                 let winning_nums = extract_winning_nums(&mut iter);
-
-                loop {
-                    while let Some(b) = iter.peek() {
-                        if b.is_ascii_digit() {
-                            break;
-                        }
-                        iter.next();
-                    }
-                    let num = iter
-                        .by_ref()
-                        .take_while(|b| b.is_ascii_digit())
-                        // warning: this consumes the trailing byte (here a space so it's fine)
-                        .fold(0, |acc, b| acc * 10 + (b - b'0'));
-
-                    if winning_nums.contains(&num) {
-                        winning += 1;
-                    }
-
-                    if iter.peek().is_none() {
-                        break;
-                    }
-                }
+                let winning = number_of_winning(&mut iter, &winning_nums);
 
                 if winning <= 1 {
                     winning
@@ -74,6 +52,34 @@ fn extract_winning_nums(iter: &mut Peekable<Bytes<'_>>) -> Vec<u8> {
     }
 
     winnings
+}
+
+fn number_of_winning(iter: &mut Peekable<Bytes<'_>>, winning_nums: &[u8]) -> u32 {
+    let mut winning = 0;
+
+    loop {
+        while let Some(b) = iter.peek() {
+            if b.is_ascii_digit() {
+                break;
+            }
+            iter.next();
+        }
+        let num = iter
+            .by_ref()
+            .take_while(|b| b.is_ascii_digit())
+            // warning: this consumes the trailing byte (here a space so it's fine)
+            .fold(0, |acc, b| acc * 10 + (b - b'0'));
+
+        if winning_nums.contains(&num) {
+            winning += 1;
+        }
+
+        if iter.peek().is_none() {
+            break;
+        }
+    }
+
+    winning
 }
 
 #[cfg(test)]
