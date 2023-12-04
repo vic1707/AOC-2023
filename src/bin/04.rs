@@ -3,20 +3,21 @@ use std::{iter::Peekable, str::Bytes};
 advent_of_code::solution!(4);
 
 pub fn part_one(input: &str) -> Option<u32> {
+    let mut input_iter = input.as_bytes().iter();
+    let colon_index = input_iter.position(|b| b == &b':').unwrap();
+    let pipe_index = input_iter.position(|b| b == &b'|').unwrap() + colon_index + 1;
     Some(
         input
             .lines()
             .map(|l| {
-                let mut iter = l.bytes().peekable();
+                let line = l.as_bytes();
+                let winning_nums = &line[colon_index + 1..pipe_index];
+                let winning = line[pipe_index + 1..]
+                    .chunks_exact(3)
+                    .filter(|&n| winning_nums.chunks_exact(3).any(|w| w == n))
+                    .count();
 
-                let winning_nums = extract_winning_nums(&mut iter);
-                let winning = number_of_winning(&mut iter, &winning_nums);
-
-                if winning <= 1 {
-                    winning
-                } else {
-                    1 << (winning - 1)
-                }
+                2 << winning >> 2
             })
             .sum(),
     )
