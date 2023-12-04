@@ -23,7 +23,28 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let mut multiplicators = [1_u32; 200];
+
+    Some(
+        input
+            .lines()
+            .enumerate()
+            .map(|(gid, l)| {
+                let mut iter = l.bytes().peekable();
+
+                let winning_nums = extract_winning_nums(&mut iter);
+                let winning = number_of_winning(&mut iter, &winning_nums);
+
+                if winning != 0 {
+                    ((gid + 1)..=(gid + winning as usize)).for_each(|i| {
+                        multiplicators[i] += multiplicators[gid];
+                    });
+                }
+
+                multiplicators[gid]
+            })
+            .sum(),
+    )
 }
 
 fn extract_winning_nums(iter: &mut Peekable<Bytes<'_>>) -> Vec<u8> {
