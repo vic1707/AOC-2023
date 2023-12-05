@@ -1,150 +1,88 @@
-use std::{
-    collections::{HashMap, HashSet},
-    iter::{Enumerate, Peekable},
-    ops::RangeInclusive,
-    str::Bytes,
-};
-
 advent_of_code::solution!(3);
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let mut lines_el = input
-        .lines()
-        .enumerate()
-        .map(|(idx, line)| {
-            get_line_numbers_and_symbols(idx, &mut line.bytes().enumerate().peekable())
-        })
-        .peekable();
-
-    let mut numbers: HashSet<Number> = HashSet::new();
-    while let Some((symbols_l1, numbers_l1)) = lines_el.next() {
-        if let Some((symbols_l2, numbers_l2)) = lines_el.peek() {
-            numbers_l1.into_iter().for_each(|num| {
-                let ok_range = extend_range(&num.1 .0);
-                symbols_l1.iter().for_each(|(_, pos_s1)| {
-                    if ok_range.contains(&pos_s1.0) {
-                        numbers.insert(num.clone());
-                    }
-                });
-                symbols_l2.iter().for_each(|(_, pos_s2)| {
-                    if ok_range.contains(&pos_s2.0) {
-                        numbers.insert(num.clone());
-                    }
-                });
-            });
-
-            symbols_l1.iter().for_each(|(_, pos_s1)| {
-                numbers_l2.iter().for_each(|num| {
-                    let ok_range = extend_range(&num.1 .0);
-                    if ok_range.contains(&pos_s1.0) {
-                        numbers.insert(num.clone());
-                    }
-                });
-            });
-        }
-    }
-
-    Some(numbers.iter().map(|(val, _)| val).sum::<usize>() as u32)
-}
-
-pub fn part_two(input: &str) -> Option<u32> {
-    let lines_el = input
-        .lines()
-        .enumerate()
-        .map(|(idx, line)| {
-            get_line_numbers_and_symbols(idx, &mut line.bytes().enumerate().peekable())
-        })
-        .collect::<Vec<_>>();
-
-    let mut lines_el = lines_el.windows(2);
-    let mut numbers: HashMap<Symbol, Vec<Number>> = HashMap::new();
-
-    while let Some([(symbols_l1, numbers_l1), (symbols_l2, numbers_l2)]) = lines_el.next() {
-        symbols_l1
-            .iter()
-            .filter(|(s, _)| matches!(s, b'*'))
-            .for_each(|symbol| {
-                numbers_l1.iter().chain(numbers_l2.iter()).for_each(|num| {
-                    let ok_range = extend_range(&num.1 .0);
-                    if ok_range.contains(&symbol.1 .0) {
-                        numbers.entry(*symbol).or_default().push(num.clone());
-                    }
-                });
-            });
-
-        symbols_l2
-            .iter()
-            .filter(|(s, _)| matches!(s, b'*'))
-            .for_each(|symbol| {
-                numbers_l1.iter().for_each(|num| {
-                    let ok_range = extend_range(&num.1 .0);
-                    if ok_range.contains(&symbol.1 .0) {
-                        numbers.entry(*symbol).or_default().push(num.clone());
-                    }
-                });
-            });
-    }
+    let bytes = input.as_bytes();
+    let map_width = bytes.iter().position(|&b| b == b'\n').unwrap() as isize;
 
     Some(
-        numbers
-            .iter()
-            .filter(|(_, val)| val.len() == 2)
-            .map(|(_, vec)| vec.iter().map(|(v, _)| v).product::<usize>())
-            .sum::<usize>() as u32,
+        (0..bytes.len())
+            // find all first digits of numbers
+            .filter(|&pos| {
+                bytes[pos].is_ascii_digit()
+                    && !bytes
+                        .get(pos.wrapping_sub(1))
+                        .map_or(false, u8::is_ascii_digit)
+            })
+            // extract len and value
+            .map(|begin| {
+                let mut len = 0;
+                let value = bytes[begin..]
+                    .iter()
+                    .take_while(|&&b| b.is_ascii_digit())
+                    .fold(0, |acc, &b| {
+                        len += 1;
+                        acc * 10 + byte_to_digit(b)
+                    });
+                (begin as isize, len, value)
+            })
+            // check if surrounded by symbol
+            .filter(|&(begin, len, _)| {
+                (-map_width - 2..-map_width + len)
+                    .chain([-1, len])
+                    .chain(map_width..map_width + len + 2)
+                    .any(|j| {
+                        bytes
+                            .get((begin + j) as usize)
+                            .map_or(false, |&b| b != b'.' && b.is_ascii_punctuation())
+                    })
+            })
+            .map(|(_, _, n)| n)
+            .sum::<u32>(),
     )
 }
 
-// (symbol, (x, line))
-type Symbol = (u8, (usize, usize));
-// (number, (range_x, line))
-type Number = (usize, (RangeInclusive<usize>, usize));
-
-fn get_line_numbers_and_symbols(
-    line_idx: usize,
-    iter: &mut Peekable<Enumerate<Bytes<'_>>>,
-) -> (Vec<Symbol>, Vec<Number>) {
-    let mut line_symbols = Vec::new();
-    let mut line_numbers = Vec::new();
-
-    loop {
-        let Some(begin) = iter
-            .by_ref()
-            .find(|b| !b.1.is_ascii_alphabetic() && b.1 != b'.')
-        else {
-            break;
-        };
-
-        match begin.1 {
-            b'0'..=b'9' => {
-                let mut num = usize::from(begin.1 - b'0');
-                let mut end = begin.0;
-                while let Some(b) = iter.peek() {
-                    if b.1.is_ascii_digit() {
-                        num = num * 10 + (b.1 - b'0') as usize;
-                        end = b.0;
-                        iter.next();
-                    } else {
-                        break;
-                    }
-                }
-                line_numbers.push((num, (begin.0..=end, line_idx)))
-            }
-            _ => line_symbols.push((begin.1, (begin.0, line_idx))),
-        };
-    }
-
-    (line_symbols, line_numbers)
+#[inline]
+fn byte_to_digit(b: u8) -> u32 {
+    u32::from(b - b'0')
 }
 
-// if range is 0..=2 then ok_range is 0..=3
-// if range is 1..=3 then ok_range is 0..=4
-fn extend_range(range: &RangeInclusive<usize>) -> RangeInclusive<usize> {
-    let start = range.start();
-    if start == &0 {
-        0..=range.end() + 1
-    } else {
-        start - 1..=range.end() + 1
-    }
+pub fn part_two(input: &str) -> Option<u32> {
+    let bytes = input.as_bytes();
+    let map_width = bytes.iter().position(|&b| b == b'\n').unwrap();
+
+    Some(
+        (0..bytes.len())
+            .filter(|&b| bytes[b] == b'*')
+            .map(|pos| {
+                let s = (pos - map_width - 2..=pos - map_width)
+                    .chain(pos - 1..=pos + 1)
+                    .chain(pos + map_width..=pos + map_width + 2)
+                    .filter(|&i| i != pos && bytes[i].is_ascii_digit())
+                    .flat_map(|num_pos| {
+                        (num_pos.saturating_sub(2)..=num_pos)
+                            .rev()
+                            .take_while(|&pos| bytes[pos].is_ascii_digit())
+                            .last()
+                    })
+                    .map(|pos| {
+                        bytes[pos..pos + 3]
+                            .iter()
+                            .take_while(|&&b| b.is_ascii_digit())
+                            .fold(0, |acc, b| acc * 10 + byte_to_digit(*b))
+                    })
+                    .fold((0, 0), |acc, num| {
+                        if acc.0 == 0 {
+                            (num, acc.1)
+                        } else if acc.0 != num && acc.1 == 0 {
+                            (acc.0, num)
+                        } else {
+                            acc
+                        }
+                    });
+                s.0 * s.1
+            })
+            .sum(),
+    )
 }
 
 #[cfg(test)]
