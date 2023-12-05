@@ -43,7 +43,52 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let mut zones = input.split("\n\n");
+    let seeds_zone = zones.next().unwrap();
+
+    let maps = zones
+        .map(|map| {
+            map.as_bytes()
+                .split(|&b| b == b'\n')
+                .skip(1)
+                .map(|range| {
+                    range
+                        .split(|&b| b == b' ')
+                        .enumerate()
+                        .fold([0_i64; 3], |mut acc, (idx, n)| {
+                            acc[idx] = parse_slice_to_number(n);
+                            acc
+                        })
+                })
+                .map(|[target, source, step]| [target - source, source, step + source])
+                .collect::<Vec<[_; 3]>>()
+        })
+        .collect::<Vec<Vec<[_; 3]>>>();
+
+    // take seeds numbers two by two
+    seeds_zone
+        .as_bytes()
+        .split(|&b| b == b' ')
+        .skip(1)
+        .map(parse_slice_to_number)
+        .collect::<Vec<_>>()
+        .chunks_exact(2)
+        .flat_map(|pair| {
+            ((pair[0] - 1)..=pair[0] + pair[1])
+                .map(|seed| {
+                    maps.iter().fold(seed, |seed, ranges| {
+                        for &[transformation, begin_range, end_range] in ranges.iter() {
+                            if seed >= begin_range && seed < end_range {
+                                return seed + transformation;
+                            }
+                        }
+                        seed
+                    })
+                })
+                .min()
+        })
+        .min()
+        .map(|n| n as u32)
 }
 
 fn parse_slice_to_number(slice: &[u8]) -> i64 {
