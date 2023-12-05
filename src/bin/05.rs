@@ -18,9 +18,10 @@ pub fn part_one(input: &str) -> Option<u32> {
                             acc
                         })
                 })
-                .collect::<Vec<[u64; 3]>>()
+                .map(|[target, source, step]| [target - source, source, step + source])
+                .collect::<Vec<[_; 3]>>()
         })
-        .collect::<Vec<Vec<[u64; 3]>>>();
+        .collect::<Vec<Vec<[_; 3]>>>();
 
     seeds_zone
         .as_bytes()
@@ -29,9 +30,9 @@ pub fn part_one(input: &str) -> Option<u32> {
         .map(parse_slice_to_number)
         .map(|seed| {
             maps.iter().fold(seed, |seed, ranges| {
-                for &[target, source, step] in ranges.iter() {
-                    if seed >= source && seed < source + step {
-                        return (seed + target) - source;
+                for &[transformation, begin_range, end_range] in ranges.iter() {
+                    if seed >= begin_range && seed < end_range {
+                        return seed + transformation;
                     }
                 }
                 seed
@@ -45,8 +46,8 @@ pub fn part_two(input: &str) -> Option<u32> {
     None
 }
 
-fn parse_slice_to_number(slice: &[u8]) -> u64 {
-    slice.iter().fold(0, |acc, &b| acc * 10 + (b - b'0') as u64)
+fn parse_slice_to_number(slice: &[u8]) -> i64 {
+    slice.iter().fold(0, |acc, &b| acc * 10 + (b - b'0') as i64)
 }
 
 #[cfg(test)]
