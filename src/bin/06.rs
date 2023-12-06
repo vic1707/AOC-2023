@@ -3,7 +3,7 @@ advent_of_code::solution!(6);
 pub fn part_one(input: &str) -> Option<u32> {
     let (times, distances) = input.split_once('\n').unwrap();
 
-    let time = times
+    let times = times
         .split_whitespace()
         .skip(1)
         .map(|s| s.bytes().fold(0, |acc, f| acc * 10 + (f - b'0') as u32));
@@ -14,7 +14,7 @@ pub fn part_one(input: &str) -> Option<u32> {
         .map(|s| s.bytes().fold(0, |acc, f| acc * 10 + (f - b'0') as u32));
 
     Some(
-        time.zip(distances)
+        times.zip(distances)
             .map(|(t, d)| {
                 let x1 = (t - ((t * t - (d << 2)) as f32).sqrt() as u32) / 2;
                 t - 2 * x1 + 1 - 2 * u32::from(x1 * (t - x1) <= d)
