@@ -2,8 +2,8 @@ advent_of_code::solution!(4);
 
 pub fn part_one(input: &str) -> Option<u32> {
     let mut input_iter = input.as_bytes().iter();
-    let colon_index = input_iter.position(|b| b == &b':').unwrap();
-    let pipe_index = input_iter.position(|b| b == &b'|').unwrap() + colon_index + 1;
+    let colon_index = input_iter.position(|b| b == &b':')?;
+    let pipe_index = input_iter.position(|b| b == &b'|')? + colon_index + 1;
 
     Some(
         input
@@ -25,8 +25,8 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u32> {
     let mut multiplicators = [1_u32; 200];
     let mut input_iter = input.as_bytes().iter();
-    let colon_index = input_iter.position(|b| b == &b':').unwrap();
-    let pipe_index = input_iter.position(|b| b == &b'|').unwrap() + colon_index + 1;
+    let colon_index = input_iter.position(|b| b == &b':')?;
+    let pipe_index = input_iter.position(|b| b == &b'|')? + colon_index + 1;
 
     Some(
         input

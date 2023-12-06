@@ -1,7 +1,7 @@
 advent_of_code::solution!(6);
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let (times, distances) = input.split_once('\n').unwrap();
+    let (times, distances) = input.split_once('\n')?;
 
     let times = times
         .split_whitespace()
@@ -28,21 +28,17 @@ pub fn part_two(input: &str) -> Option<u64> {
     let mut zones = input.split('\n');
 
     let time = zones
-        .next()
-        .unwrap()
+        .next()?
         .split(':')
-        .nth(1)
-        .unwrap()
+        .nth(1)?
         .bytes()
         .filter(|&b| b != b' ')
         .fold(0, |acc, f| acc * 10 + (f - b'0') as u64);
 
     let distance = zones
-        .next()
-        .unwrap()
+        .next()?
         .split(':')
-        .nth(1)
-        .unwrap()
+        .nth(1)?
         .bytes()
         .filter(|&b| b != b' ')
         .fold(0, |acc, f| acc * 10 + (f - b'0') as u64);

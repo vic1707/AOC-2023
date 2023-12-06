@@ -2,7 +2,7 @@ advent_of_code::solution!(3);
 
 pub fn part_one(input: &str) -> Option<u32> {
     let bytes = input.as_bytes();
-    let map_width = bytes.iter().position(|&b| b == b'\n').unwrap() as isize;
+    let map_width = bytes.iter().position(|&b| b == b'\n')? as isize;
 
     Some(
         (0..bytes.len())
@@ -48,7 +48,7 @@ fn byte_to_digit(b: u8) -> u32 {
 
 pub fn part_two(input: &str) -> Option<u32> {
     let bytes = input.as_bytes();
-    let map_width = bytes.iter().position(|&b| b == b'\n').unwrap();
+    let map_width = bytes.iter().position(|&b| b == b'\n')?;
 
     Some(
         (0..bytes.len())
