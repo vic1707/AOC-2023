@@ -14,7 +14,8 @@ pub fn part_one(input: &str) -> Option<u32> {
         .map(|s| s.bytes().fold(0, |acc, f| acc * 10 + (f - b'0') as u32));
 
     Some(
-        times.zip(distances)
+        times
+            .zip(distances)
             .map(|(t, d)| {
                 let x1 = (t - ((t * t - (d << 2)) as f32).sqrt() as u32) / 2;
                 t - 2 * x1 + 1 - 2 * u32::from(x1 * (t - x1) <= d)
