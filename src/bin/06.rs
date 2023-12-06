@@ -24,8 +24,31 @@ pub fn part_one(input: &str) -> Option<u32> {
     )
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let mut zones = input.split('\n');
+
+    let time = zones
+        .next()
+        .unwrap()
+        .split(':')
+        .nth(1)
+        .unwrap()
+        .bytes()
+        .filter(|&b| b != b' ')
+        .fold(0, |acc, f| acc * 10 + (f - b'0') as u64);
+
+    let distance = zones
+        .next()
+        .unwrap()
+        .split(':')
+        .nth(1)
+        .unwrap()
+        .bytes()
+        .filter(|&b| b != b' ')
+        .fold(0, |acc, f| acc * 10 + (f - b'0') as u64);
+
+    let x1 = (time - ((time * time - (distance << 2)) as f32).sqrt() as u64) / 2;
+    Some(time - 2 * x1 + 1 - 2 * u64::from(x1 * (time - x1) <= distance))
 }
 
 #[cfg(test)]
@@ -42,5 +65,8 @@ mod tests {
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(71503));
+
+        let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
+        assert_eq!(result, Some(30077773));
     }
 }
