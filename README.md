@@ -22,6 +22,8 @@ Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.
 
 <!--- benchmarking table --->
 
+Ran on a MacBook Pro (16-inch, M2 Pro, 2023) with 16GB RAM on MacOS 14.1.1 (23B81).
+
 ---
 
 <details>
