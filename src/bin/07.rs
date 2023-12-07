@@ -39,7 +39,8 @@ pub fn part_two(input: &str) -> Option<u32> {
             .enumerate()
             .map(|(rank, (_, bid))| (rank + 1) as u32 * bid)
             .sum(),
-    )}
+    )
+}
 
 fn parse_hand(hand_bytes: &[u8]) -> (u32, u32) {
     let bid = hand_bytes[6..]
