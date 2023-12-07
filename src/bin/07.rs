@@ -25,8 +25,21 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
-}
+    let mut hands = input
+        .lines()
+        .map(|l| l.as_bytes())
+        .map(parse_hand_joker)
+        .collect::<Vec<_>>();
+
+    hands.sort_unstable();
+
+    Some(
+        hands
+            .iter()
+            .enumerate()
+            .map(|(rank, (_, bid))| (rank + 1) as u32 * bid)
+            .sum(),
+    )}
 
 fn parse_hand(hand_bytes: &[u8]) -> (u32, u32) {
     let bid = hand_bytes[6..]
@@ -67,6 +80,65 @@ fn parse_hand(hand_bytes: &[u8]) -> (u32, u32) {
     hand.sort_unstable_by(|a, b| b.cmp(a));
 
     let rank = match hand[0] {
+        5 => 6,                 // five of a kind
+        4 => 5,                 // four of a kind
+        3 if hand[1] == 2 => 4, // full
+        3 => 3,                 // three of a kind
+        2 if hand[1] == 2 => 2, // two pairs
+        2 => 1,                 // pair
+        _ => 0,                 // high card
+    };
+
+    power += rank << (32 - 3);
+
+    (power, bid)
+}
+
+fn parse_hand_joker(hand_bytes: &[u8]) -> (u32, u32) {
+    let bid = hand_bytes[6..]
+        .iter()
+        .fold(0, |acc, &b| acc * 10 + (b - b'0') as u32);
+
+    let mut hand = [0_u8; 13];
+    let mut power: u32 = 0;
+    let mut jokers = 0;
+    hand_bytes.iter().enumerate().take(5).for_each(|(i, &b)| {
+        let ord = match b {
+            b'J' => {
+                jokers += 1;
+                0
+            }
+            b'2'..=b'9' => b - b'0' - 1,
+            b'T' => 9,
+            b'Q' => 10,
+            b'K' => 11,
+            b'A' => 12,
+            _ => unreachable!(),
+        } as u32;
+
+        // skip jokers counting
+        hand[ord as usize] += u8::from(ord != 0);
+        // save the value of each card in a 4 bits chunk
+        power += ord << (4 * (4 - i));
+    });
+
+    // a hand can be a
+    // - five of a kind
+    // - four of a kind
+    // - full (three of a kind + pair)
+    // - three of a kind
+    // - two pairs
+    // - pair
+    // - high card
+    // so hand ranking has 7 levels => 3 bits
+    // and we have 5 cards => 20 bits
+    // we will put the hand ranking in the 3 most significant bits
+    // and the 39 other bits will be used to represent the cards
+
+    // sort from highest number of copies to lowest
+    hand.sort_unstable_by(|a, b| b.cmp(a));
+
+    let rank = match (hand[0]) + jokers {
         5 => 6,                 // five of a kind
         4 => 5,                 // four of a kind
         3 if hand[1] == 2 => 4, // full
